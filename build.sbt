@@ -31,6 +31,7 @@ lazy val root = (project in file("."))
       //Circe
       "io.circe" %% "circe-generic" % CirceVersion,
       "io.circe" %% "circe-literal" % CirceVersion,
+      "io.circe" %% "circe-parser"  % CirceVersion,
       //PureConfig
       "com.github.pureconfig" %% "pureconfig"             % PureConfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % PureConfigVersion,
@@ -38,7 +39,7 @@ lazy val root = (project in file("."))
       //Testing
       "org.scalameta"  %% "munit"               % MunitVersion           % Test,
       "org.typelevel"  %% "munit-cats-effect-3" % MunitCatsEffectVersion % Test,
-      "org.tpolecat"   %% "doobie-specs2"       % DoobieVersion          % Test,
+      "org.tpolecat"   %% "doobie-munit"       % DoobieVersion          % Test,
       "ch.qos.logback" % "logback-classic"      % LogbackVersion         % Runtime
     ),
     addCompilerPlugin("org.typelevel" %% "kind-projector"     % "0.13.2" cross CrossVersion.full),
