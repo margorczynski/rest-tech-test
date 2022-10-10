@@ -4,6 +4,7 @@ val SqliteVersion          = "3.39.3.0"
 val FlywayVersion          = "9.4.0"
 val CirceVersion           = "0.14.3"
 val PureConfigVersion      = "0.17.1"
+val JsonSchemaValidatorVersion = "2.2.14"
 val MunitVersion           = "0.7.29"
 val LogbackVersion         = "1.4.3"
 val MunitCatsEffectVersion = "1.0.7"
@@ -36,6 +37,8 @@ lazy val root = (project in file("."))
       "com.github.pureconfig" %% "pureconfig"             % PureConfigVersion,
       "com.github.pureconfig" %% "pureconfig-cats-effect" % PureConfigVersion,
       "com.github.pureconfig" %% "pureconfig-ip4s"        % PureConfigVersion,
+      //json-schema-validator
+      "com.github.java-json-tools" % "json-schema-validator" % JsonSchemaValidatorVersion,
       //Testing
       "org.scalameta"  %% "munit"               % MunitVersion           % Test,
       "org.typelevel"  %% "munit-cats-effect-3" % MunitCatsEffectVersion % Test,

@@ -2,4 +2,4 @@ package io.github.margorczynski.techtest.model
 
 import io.circe.Json
 
-case class JsonSchema (schemaId: String, schemaJson: Json)
+case class JsonSchemaModel(schemaId: String, schemaJson: Json)

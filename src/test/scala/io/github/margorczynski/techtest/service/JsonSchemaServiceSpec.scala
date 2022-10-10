@@ -4,8 +4,8 @@ import io.github.margorczynski.techtest.TestJsonSchemaRepository
 import munit.CatsEffectSuite
 import io.circe._
 import io.circe.parser._
-import io.github.margorczynski.techtest.model.JsonSchema
-import io.github.margorczynski.techtest.service.ServiceError.{JsonSchemaIdMissingError, JsonSchemaIdTakenError}
+import io.github.margorczynski.techtest.model.JsonSchemaModel
+import io.github.margorczynski.techtest.service.ServiceError.{JsonSchemaIdMissingError, JsonSchemaIdTakenError, JsonValidationError}
 
 import scala.io.Source
 
@@ -16,12 +16,12 @@ class JsonSchemaServiceSpec extends CatsEffectSuite {
 
   //Fail fast, no point in handling the Either
   private val Right(testJson) =
-    parse(Source.fromResource("config_schema.json").mkString)
+    parse(Source.fromResource("service/config_schema.json").mkString)
 
   private val testSchemaId = "config_schema"
 
   private val testJsonSchema =
-    JsonSchema(testSchemaId, testJson)
+    JsonSchemaModel(testSchemaId, testJson)
 
   override def beforeEach(context: BeforeEach): Unit =
     testRepo.clear()
@@ -45,6 +45,47 @@ class JsonSchemaServiceSpec extends CatsEffectSuite {
   }
 
   test("validate success") {
+    val Right(configJson) = parse(Source.fromResource("service/config.json").mkString)
 
+    //Before validation the schema must exist in the storage
+    testService.create(testJsonSchema).value.unsafeRunSync()
+
+    testService.validate(configJson, testSchemaId).value.assertEquals(Right(()))
+  }
+
+  test("validate fail if schema missing") {
+    val Right(configJson) = parse(Source.fromResource("service/config.json").mkString)
+
+    testService.validate(configJson, testSchemaId).value.assertEquals(Left(JsonSchemaIdMissingError(testSchemaId)))
+  }
+
+  test("validate fail for empty JSON") {
+    val Right(configJson) = parse(Source.fromResource("service/empty.json").mkString)
+    val errorMessages = List("object has missing required properties ([\"destination\",\"source\"])")
+
+    testService.create(testJsonSchema).value.unsafeRunSync()
+
+    testService.validate(configJson, testSchemaId).value.assertEquals(Left(JsonValidationError(errorMessages)))
+  }
+
+  test("validate fail for wrong type") {
+    val Right(configJson) = parse(Source.fromResource("service/config_wrong_type.json").mkString)
+    val errorMessages = List("instance type (string) does not match any allowed primitive type (allowed: [\"integer\"])")
+
+    testService.create(testJsonSchema).value.unsafeRunSync()
+
+    testService.validate(configJson, testSchemaId).value.assertEquals(Left(JsonValidationError(errorMessages)))
+  }
+
+  test("validate fail for missing field and wrong type") {
+    val Right(configJson) = parse(Source.fromResource("service/config_missing_field_wrong_type.json").mkString)
+    val errorMessages = List(
+      "object has missing required properties ([\"destination\"])",
+      "instance type (string) does not match any allowed primitive type (allowed: [\"integer\"])"
+    )
+
+    testService.create(testJsonSchema).value.unsafeRunSync()
+
+    testService.validate(configJson, testSchemaId).value.assertEquals(Left(JsonValidationError(errorMessages)))
   }
 }
