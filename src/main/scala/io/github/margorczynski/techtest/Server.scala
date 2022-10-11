@@ -6,7 +6,7 @@ import doobie.hikari.HikariTransactor
 import doobie.util.ExecutionContexts
 import fs2.Stream
 import io.github.margorczynski.techtest.config.Config
-import io.github.margorczynski.techtest.repository.{DbJsonSchemaRepository, JsonSchemaRepository}
+import io.github.margorczynski.techtest.repository.DbJsonSchemaRepository
 import io.github.margorczynski.techtest.service.JsonSchemaService
 import org.flywaydb.core.Flyway
 import org.http4s.ember.server.EmberServerBuilder
@@ -16,7 +16,7 @@ import org.http4s.server.middleware.Logger
 object Server {
 
   private def httpApp(jsonSchemaService: JsonSchemaService) =
-    Routes.routes(jsonSchemaService).orNotFound
+    Route.routes(jsonSchemaService).orNotFound
 
   // We add the http4s logging middleware for debug, take care in case of sensitive data like passwords!
   private def httpAppWithLogging(jsonSchemaService: JsonSchemaService) =
@@ -54,7 +54,7 @@ object Server {
         ec
       )
       repository = new DbJsonSchemaRepository(transactor)
-      service = new JsonSchemaService(repository)
+      service    = new JsonSchemaService(repository)
     } yield Resources(config, transactor, service)
   }
 
@@ -74,5 +74,9 @@ object Server {
     } yield exitCode
   }.drain
 
-  case class Resources(config: Config, transactor: HikariTransactor[IO], jsonSchemaService: JsonSchemaService)
+  case class Resources(
+      config: Config,
+      transactor: HikariTransactor[IO],
+      jsonSchemaService: JsonSchemaService
+  )
 }

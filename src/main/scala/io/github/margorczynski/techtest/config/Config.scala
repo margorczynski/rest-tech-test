@@ -1,6 +1,6 @@
 package io.github.margorczynski.techtest.config
 
-import cats.effect.{IO, Resource}
+import cats.effect.IO
 import pureconfig._
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
