@@ -65,6 +65,29 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
     )
   }
 
+  test("create fail if schema name already taken") {
+    val request =
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
+
+    testRoutes.run(request).unsafeRunSync()
+
+    val response = testRoutes.run(request)
+
+    val expectedBody =
+      generateErrorJson(
+        "uploadSchema",
+        testSchemaId,
+        "Schema with ID: config_schema already exists"
+      )
+
+    check(
+      response,
+      Status.Conflict,
+      Some(expectedBody)
+    )
+  }
+
   test("create fail if isn't JSON serializable payload") {
 
     val request =

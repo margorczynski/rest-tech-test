@@ -12,7 +12,10 @@ import io.github.margorczynski.techtest.RouteError.{
 import io.github.margorczynski.techtest.model.JsonSchemaModel
 import io.github.margorczynski.techtest.model.JsonSchemaModel._
 import io.github.margorczynski.techtest.service.JsonSchemaService
-import io.github.margorczynski.techtest.service.ServiceError.JsonSchemaIdMissingError
+import io.github.margorczynski.techtest.service.ServiceError.{
+  JsonSchemaIdMissingError,
+  JsonSchemaIdTakenError
+}
 import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
@@ -27,10 +30,15 @@ object Route {
         _ <- jsonSchemaService.create(jsonSchemaModel).leftMap[RouteError](RouteServiceError)
       } yield ()
 
+      // TODO: Bit redundant err pattern matches, some map (e.g. via a typeclass) of error to status code would help
+
       result.value
         .flatMap {
           case ok @ Right(_) => Created(RouteResponse("uploadSchema", schemaId, ok).asJson)
-          case err @ Left(_) => BadRequest(RouteResponse("uploadSchema", schemaId, err).asJson)
+          case err @ Left(RouteServiceError(JsonSchemaIdTakenError(_))) =>
+            Conflict(RouteResponse("uploadSchema", schemaId, err).asJson)
+          case err @ Left(_) =>
+            BadRequest(RouteResponse("uploadSchema", schemaId, err).asJson)
         }
     }
 
@@ -78,6 +86,7 @@ object Route {
 
   case class RouteResponse(action: String, id: String, status: Either[RouteError, _])
 
+  // TODO: Better would be to return a JSON object/map instead of a string as the error, this approach is faster but harder to handle at the client side
   implicit val responseEncoder: Encoder[RouteResponse] = Encoder.instance { response =>
     val baseFields = Seq(
       "action" -> response.action,
