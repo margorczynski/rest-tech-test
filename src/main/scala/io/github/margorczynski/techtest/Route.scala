@@ -4,7 +4,11 @@ import cats.effect.IO
 import cats.implicits._
 import io.circe.syntax.EncoderOps
 import io.circe.{Encoder, Json}
-import io.github.margorczynski.techtest.RouteError.{JsonDeserializationError, RouteResult, RouteServiceError}
+import io.github.margorczynski.techtest.RouteError.{
+  JsonDeserializationError,
+  RouteResult,
+  RouteServiceError
+}
 import io.github.margorczynski.techtest.model.JsonSchemaModel
 import io.github.margorczynski.techtest.model.JsonSchemaModel._
 import io.github.margorczynski.techtest.service.JsonSchemaService
@@ -37,9 +41,13 @@ object Route {
         .flatMap {
           case Right(jsonSchemaModel) => Ok(jsonSchemaModel.asJson)
           case err @ Left(JsonSchemaIdMissingError(_)) =>
-            NotFound(RouteResponse("downloadSchema", schemaId, err.leftMap(RouteServiceError)).asJson)
+            NotFound(
+              RouteResponse("downloadSchema", schemaId, err.leftMap(RouteServiceError)).asJson
+            )
           case err @ Left(_) =>
-            BadRequest(RouteResponse("downloadSchema", schemaId, err.leftMap(RouteServiceError)).asJson)
+            BadRequest(
+              RouteResponse("downloadSchema", schemaId, err.leftMap(RouteServiceError)).asJson
+            )
         }
   }
 
@@ -63,7 +71,9 @@ object Route {
 
   }
 
-  private def decodeRequest[T](req: Request[IO])(implicit ed: EntityDecoder[IO, T]): RouteResult[T] =
+  private def decodeRequest[T](req: Request[IO])(implicit
+      ed: EntityDecoder[IO, T]
+  ): RouteResult[T] =
     req.attemptAs[T].leftMap(JsonDeserializationError)
 
   case class RouteResponse(action: String, id: String, status: Either[RouteError, _])
@@ -85,11 +95,12 @@ object Route {
     )
   }
 
-  /**
-    * Create the routes for the HTTP application by aggregating the schema and validation routes.
+  /** Create the routes for the HTTP application by aggregating the schema and validation routes.
     *
-    * @param jsonSchemaService The JSON Schema Service to be used for executing the logic.
-    * @return An aggregate of JSON Schema and Schema validation routes.
+    * @param jsonSchemaService
+    *   The JSON Schema Service to be used for executing the logic.
+    * @return
+    *   An aggregate of JSON Schema and Schema validation routes.
     */
   def routes(jsonSchemaService: JsonSchemaService): HttpRoutes[IO] =
     schemaRoutes(jsonSchemaService) <+> validationRoutes(jsonSchemaService)

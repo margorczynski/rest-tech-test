@@ -1,4 +1,4 @@
 CREATE TABLE json_schemas (
-    schema_id VARCHAR(255) PRIMARY KEY,
-    schema_json TEXT NOT NULL
+    schema_id VARCHAR PRIMARY KEY,
+    schema_json VARCHAR NOT NULL
 )

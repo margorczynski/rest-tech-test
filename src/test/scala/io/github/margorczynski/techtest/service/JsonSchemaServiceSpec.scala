@@ -3,7 +3,11 @@ package io.github.margorczynski.techtest.service
 import io.circe.parser._
 import io.github.margorczynski.techtest.{JsonSchemaServiceTestSuite, TestJsonSchemaRepository}
 import io.github.margorczynski.techtest.model.JsonSchemaModel
-import io.github.margorczynski.techtest.service.ServiceError.{JsonSchemaIdMissingError, JsonSchemaIdTakenError, JsonValidationError}
+import io.github.margorczynski.techtest.service.ServiceError.{
+  JsonSchemaIdMissingError,
+  JsonSchemaIdTakenError,
+  JsonValidationError
+}
 import munit.CatsEffectSuite
 
 import scala.io.Source

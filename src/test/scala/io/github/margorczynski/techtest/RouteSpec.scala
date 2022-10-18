@@ -15,16 +15,13 @@ import io.github.margorczynski.techtest.RouteError.JsonDeserializationError
 
 import scala.io.Source
 
-
 class RouteSpec extends JsonSchemaServiceTestSuite {
 
   private val testRoutes = Route.routes(testService).orNotFound
 
-  private def check[A](actual: IO[Response[IO]],
-               expectedStatus: Status,
-               expectedBody: Option[A])(
-                implicit ev: EntityDecoder[IO, A]
-              ) = {
+  private def check[A](actual: IO[Response[IO]], expectedStatus: Status, expectedBody: Option[A])(
+      implicit ev: EntityDecoder[IO, A]
+  ) = {
 
     assertIO(actual.map(_.status), expectedStatus)
     assertIO(actual.flatMap(_.body.compile.toVector.map(_.isEmpty)), expectedBody.isEmpty)
@@ -39,14 +36,14 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
 
   private def generateOkJson(action: String, id: String) = Json.obj(
     "action" := action,
-    "id" := id,
+    "id"     := id,
     "status" := "success"
   )
 
   private def generateErrorJson(action: String, id: String, message: String) = Json.obj(
-    "action" := action,
-    "id" := id,
-    "status" := "error",
+    "action"  := action,
+    "id"      := id,
+    "status"  := "error",
     "message" := message
   )
 
@@ -54,7 +51,8 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
 
   test("create success") {
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(testJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
 
     val response = testRoutes.run(request)
 
@@ -70,7 +68,8 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
   test("create fail if isn't JSON serializable payload") {
 
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(notSerializableString)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(notSerializableString)
 
     val response = testRoutes.run(request)
 
@@ -87,13 +86,14 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
   test("download success") {
 
     val createRequest =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(testJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
     val request =
       Request(method = Method.GET, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
 
     val expectedBody = testJson
 
-    //Create the test schema
+    // Create the test schema
     testRoutes.run(createRequest).unsafeRunSync()
 
     val response = testRoutes.run(request)
@@ -111,7 +111,11 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
       Request(method = Method.GET, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
 
     val expectedBody =
-      generateErrorJson("downloadSchema", testSchemaId, s"Schema with ID $testSchemaId doesn't exist")
+      generateErrorJson(
+        "downloadSchema",
+        testSchemaId,
+        s"Schema with ID $testSchemaId doesn't exist"
+      )
 
     val response = testRoutes.run(request)
 
@@ -124,9 +128,11 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
 
   test("validate success") {
     val createRequest =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(testJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId")).withEntity(okConfigJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId"))
+        .withEntity(okConfigJson)
 
     val expectedBody = generateOkJson("validateDocument", testSchemaId)
 
@@ -143,10 +149,15 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
 
   test("validate fail if JSON Schema missing") {
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId")).withEntity(okConfigJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId"))
+        .withEntity(okConfigJson)
 
     val expectedBody =
-      generateErrorJson("validateDocument", testSchemaId, s"Schema with ID $testSchemaId doesn't exist")
+      generateErrorJson(
+        "validateDocument",
+        testSchemaId,
+        s"Schema with ID $testSchemaId doesn't exist"
+      )
 
     val response = testRoutes.run(request)
 
@@ -159,9 +170,11 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
 
   test("validate fail if isn't JSON serializable payload") {
     val createRequest =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(testJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId")).withEntity(notSerializableString)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId"))
+        .withEntity(notSerializableString)
 
     val expectedBody =
       generateErrorJson("validateDocument", testSchemaId, "Malformed message body: Invalid JSON")
@@ -181,9 +194,11 @@ class RouteSpec extends JsonSchemaServiceTestSuite {
     val Right(badConfigJson) = parse(Source.fromResource("service/config_wrong_type.json").mkString)
 
     val createRequest =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId")).withEntity(testJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/schema/$testSchemaId"))
+        .withEntity(testJson)
     val request =
-      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId")).withEntity(badConfigJson)
+      Request(method = Method.POST, uri = Uri.unsafeFromString(s"/validate/$testSchemaId"))
+        .withEntity(badConfigJson)
 
     val errorMessage =
       "instance type (string) does not match any allowed primitive type (allowed: [\"integer\"])"
